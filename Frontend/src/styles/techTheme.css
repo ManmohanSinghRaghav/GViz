@@ -1,0 +1,78 @@
+:root {
+  --pixel-border: repeating-linear-gradient(
+    45deg,
+    #2563eb 0,
+    #2563eb 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  --tech-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.tech-bg {
+  background-color: #0f172a;
+  background-image: 
+    radial-gradient(circle at 25px 25px, rgba(37, 99, 235, 0.15) 2%, transparent 0%),
+    radial-gradient(circle at 75px 75px, rgba(37, 99, 235, 0.15) 2%, transparent 0%);
+  background-size: 100px 100px;
+}
+
+.pixel-border {
+  position: relative;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.pixel-border::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: var(--pixel-border);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.tech-card {
+  backdrop-filter: blur(8px);
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.tech-text {
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.cyber-button {
+  position: relative;
+  background: linear-gradient(45deg, #2563eb, #1d4ed8);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%
+  );
+  transition: all 0.3s ease;
+}
+
+.cyber-button:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+}
+
+.tech-input {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: #e2e8f0;
+}
+
+.tech-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}

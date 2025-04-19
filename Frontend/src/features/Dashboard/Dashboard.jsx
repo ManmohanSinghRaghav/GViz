@@ -1,7 +1,7 @@
 import React from 'react';
-import ProgressBar from '../ProgressBar/ProgressBar';
-import DailyPlanner from '../DailyPlanner/DailyPlanner';
-import ProjectCard from '../ProjectCard/ProjectCard';
+import ProgressBar from '../../components/ProgressBar/ProgressBar';
+import DailyPlanner from '../../components/DailyPlanner/DailyPlanner';
+import ProjectCard from '../../components/ProjectCard/ProjectCard';
 
 const Dashboard = () => {
   const metrics = [
@@ -17,22 +17,24 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <div className="space-y-8">
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      </header>
       
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg shadow">
-            <p className="text-gray-600">{metric.label}</p>
-            <p className="text-2xl font-bold">{metric.value}</p>
+          <div key={index} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-sm font-medium text-gray-600 mb-2">{metric.label}</p>
+            <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Learning Progress */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-xl shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Learning Progress</h2>
           <div className="space-y-4">
             <div>
@@ -53,13 +55,13 @@ const Dashboard = () => {
         </div>
 
         {/* Daily Tasks */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-xl shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Today's Plan</h2>
           <DailyPlanner />
         </div>
 
         {/* Upcoming Interviews */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-xl shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Upcoming Interviews</h2>
           <div className="space-y-3">
             {upcomingInterviews.map((interview, index) => (
@@ -75,7 +77,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Projects */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-xl shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Recent Projects</h2>
           <div className="space-y-4">
             <ProjectCard 
