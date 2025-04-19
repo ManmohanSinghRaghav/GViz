@@ -1,8 +1,8 @@
 /**
- * Storage utility for handling localStorage
+ * Simple storage utility for browser localStorage with proper error handling
  */
 const storage = {
-  get(key) {
+  get: (key) => {
     try {
       const item = localStorage.getItem(key);
       return item ? JSON.parse(item) : null;
@@ -12,7 +12,7 @@ const storage = {
     }
   },
   
-  set(key, value) {
+  set: (key, value) => {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
@@ -22,7 +22,7 @@ const storage = {
     }
   },
   
-  remove(key) {
+  remove: (key) => {
     try {
       localStorage.removeItem(key);
       return true;
@@ -32,7 +32,7 @@ const storage = {
     }
   },
   
-  clear() {
+  clear: () => {
     try {
       localStorage.clear();
       return true;

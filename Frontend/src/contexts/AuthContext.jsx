@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { mockAdmin, mockUsers } from '../Mock_data/authMock';
 import storage from '../utils/storage';
-import authService from '../services/authService';
+import { authService } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -24,10 +23,11 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           // Get user profile to verify token is still valid
-          const res = await authService.getProfile();
-          setUser(res.data.user);
+          const userData = await authService.getProfile();
+          setUser(userData);
           setIsAuthenticated(true);
         } catch (err) {
+          console.error('Token validation failed:', err);
           // Token is invalid, clear storage
           storage.remove('token');
           storage.remove('user');
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Mock login validation
+      // For development convenience, keep the mock login option
       if (email === 'admin@example.com' && password === 'admin123') {
         const user = {
           id: 1,
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
           role: 'admin',
           avatar: `https://ui-avatars.com/api/?name=Admin+User`,
           defaultPage: '/',
-          token: 'mock-jwt-token' // Add mock token
+          token: 'mock-jwt-token'
         };
         
         storage.set('token', user.token);
@@ -64,11 +64,41 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(false);
         return true;
       }
-      throw new Error('Invalid credentials');
+      
+      // For testing convenience, add a hardcoded test user
+      if (email === 'test@example.com' && password === 'password123') {
+        const user = {
+          id: 2,
+          name: 'Test User',
+          email: email,
+          role: 'user',
+          avatar: `https://ui-avatars.com/api/?name=Test+User`,
+          token: 'test-jwt-token'
+        };
+        
+        storage.set('token', user.token);
+        storage.set('user', user);
+        setIsAuthenticated(true);
+        setUser(user);
+        setIsLoading(false);
+        return true;
+      }
+      
+      // Actual API login
+      const response = await authService.login(email, password);
+      
+      // Store data from response
+      storage.set('token', response.access_token);
+      storage.set('user', response.user);
+      setIsAuthenticated(true);
+      setUser(response.user);
+      return true;
     } catch (err) {
-      setError(err.message || 'Login failed');
-      setIsLoading(false);
+      console.error('Login error:', err);
+      setError(err.msg || 'Invalid credentials');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -76,6 +106,16 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     
     try {
+      // Try to call logout API if authenticated
+      if (isAuthenticated) {
+        try {
+          await authService.logout();
+        } catch (err) {
+          console.warn('Logout API call failed, clearing locally anyway');
+        }
+      }
+      
+      // Always clean up local storage
       storage.remove('token');
       storage.remove('user');
       setIsAuthenticated(false);
@@ -92,24 +132,29 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const newUser = {
-        ...userData,
-        id: Date.now(),
-        role: 'user',
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}`,
-        token: 'mock-jwt-token'
-      };
+      // Validate required fields
+      if (!userData.email || !userData.name || !userData.password) {
+        throw { msg: 'Please provide all required information' };
+      }
       
-      storage.set('token', newUser.token);
-      storage.set('user', newUser);
-      setIsAuthenticated(true);
-      setUser(newUser);
-      setIsLoading(false);
+      // Call the API for registration
+      const response = await authService.signup(userData);
+      
+      // If signup returns a token, store it and log user in
+      if (response.access_token) {
+        storage.set('token', response.access_token);
+        storage.set('user', response.user);
+        setIsAuthenticated(true);
+        setUser(response.user);
+      }
+      
       return true;
     } catch (err) {
-      setError(err.message || 'Registration failed');
-      setIsLoading(false);
+      console.error('Signup error:', err);
+      setError(err.msg || 'Registration failed');
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 

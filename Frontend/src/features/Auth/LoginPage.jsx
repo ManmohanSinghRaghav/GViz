@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { FaUser, FaLock } from 'react-icons/fa';
+import { FaUser, FaLock, FaInfoCircle } from 'react-icons/fa';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, error: authError, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,14 +24,22 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
+      if (!formData.email || !formData.password) {
+        throw new Error('Please enter both email and password');
+      }
+      
+      console.log('Attempting login with:', { email: formData.email, password: '****' });
+      
       const success = await login(formData.email, formData.password);
       if (success) {
-        navigate('/'); // Changed from '/dashboard' to '/'
+        navigate('/');
       } else {
-        setError('Invalid credentials. Try admin@example.com / admin123');
+        // Display the error from auth context or a default message
+        setError(authError || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError(err.message || 'An error occurred');
+      setError(err.message || 'An error occurred during login');
+      console.error('Login form error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -36,11 +52,31 @@ const LoginPage = () => {
           <h2 className="text-3xl font-bold tech-text bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
             Sign in to GViz
           </h2>
+          <button 
+            onClick={() => setShowDebugInfo(!showDebugInfo)}
+            className="text-xs text-gray-400 mt-1 flex items-center justify-center mx-auto"
+          >
+            <FaInfoCircle className="mr-1" /> {showDebugInfo ? 'Hide' : 'Show'} Test Accounts
+          </button>
         </div>
+
+        {showDebugInfo && (
+          <div className="bg-gray-800 p-3 rounded text-xs text-gray-300">
+            <p className="font-bold mb-1">Test Accounts:</p>
+            <p>Email: <span className="text-green-400">admin@example.com</span> / Password: <span className="text-green-400">admin123</span></p>
+            <p>Email: <span className="text-green-400">test@example.com</span> / Password: <span className="text-green-400">password123</span></p>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded">
             {error}
+          </div>
+        )}
+        
+        {!error && authError && (
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded">
+            {authError}
           </div>
         )}
 
