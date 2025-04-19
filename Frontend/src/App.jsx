@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import Navbar from './layout/Navbar';
 import Sidebar from './layout/Sidebar';
@@ -10,31 +10,61 @@ import Settings from './components/Settings/Settings';
 import LoginPage from './features/Login/LoginPage';
 import SignupPage from './features/Signup/SignupPage';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import Layout from './layout/Layout';
 
-function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+const AppContent = () => {
+  const location = useLocation();
+  const authRoutes = ['/login', '/signup'];
+  const isAuthRoute = authRoutes.includes(location.pathname);
+
+  if (isAuthRoute) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Routes>
+    );
+  }
 
   return (
-    <SettingsProvider>
-      <Router>
-        <div className="flex h-screen">
-          <Sidebar isOpen={sidebarOpen} />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-            <main className="flex-1 overflow-x-hidden overflow-y-auto">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/visualizer" element={<Visualizer />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/signup" element={<SignupPage />} />
-              </Routes>
-            </main>
-          </div>
-        </div>
-      </Router>
-    </SettingsProvider>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Layout>
+            <Dashboard />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/visualizer" element={
+        <ProtectedRoute>
+          <Layout>
+            <Visualizer />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <Layout>
+            <Settings />
+          </Layout>
+        </ProtectedRoute>
+      } />
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <SettingsProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </SettingsProvider>
+    </AuthProvider>
   );
 }
 
