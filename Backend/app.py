@@ -1,126 +1,228 @@
-import time
 import os
 import logging
-import datetime
-import uuid
+from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-import database  # Use the Flask-PyMongo module instead
-from routes.user import user_bp
-from routes.recommendation import recommendation_bp
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 from dotenv import load_dotenv
-import config
+from pymongo import MongoClient
+from werkzeug.security import generate_password_hash, check_password_hash
+from bson.objectid import ObjectId
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
+# Initialize Flask app
 app = Flask(__name__)
 
-# Configuration using environment variables
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-me')
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'jwt-key-change-me')
+# JWT Configuration
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'super-secret-jwt-key')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(
+    minutes=int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES_MINUTES', 60))
+)
 
-# MongoDB configuration
-use_local_db = os.environ.get('USE_LOCAL_DB', 'false').lower() == 'true'
-mongo_uri = os.environ.get('MONGO_URI_LOCAL' if use_local_db else 'MONGO_URI')
+# Store revoked tokens (in a real app, use Redis or DB)
+revoked_tokens = set()
 
-# Ensure we're using the right MongoDB URI
-if not mongo_uri or mongo_uri == 'MONGO_URI':
-    # If MONGO_URI wasn't found, use the literal value from .env
-    mongo_uri = os.environ.get('MONGO_URI')
-    logger.info(f"Using Cloud MongoDB URI: {mongo_uri[:20]}...")
-
-app.config['MONGO_URI'] = mongo_uri
-
-# Enable CORS with proper configuration
+# Enable CORS
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
-# Initialize extensions
+# Initialize JWT
 jwt = JWTManager(app)
-database.init_app(app)  # Initialize Flask-PyMongo
 
-# Register blueprints
-app.register_blueprint(user_bp, url_prefix='/api/user')
-app.register_blueprint(recommendation_bp, url_prefix='/api/recommendation')
+# Check if token has been revoked
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    jti = jwt_payload["jti"]
+    return jti in revoked_tokens
 
-@app.route('/api/health')
-def health_check():
-    """API health check endpoint that also checks database connectivity"""
-    try:
-        # Check if we can connect to the database
-        database.mongo.db.command('ping')
-        db_status = 'connected'
-    except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        db_status = 'disconnected'
+# Connect to MongoDB
+try:
+    # Extract connection details from environment
+    mongo_uri = os.environ.get('MONGO_URI')
+    db_name = os.environ.get('MONGO_DB_NAME', 'SqTech')
+    collection_name = os.environ.get('COLLECTION_NAME', 'User')
     
-    return {
-        'status': 'healthy' if db_status == 'connected' else 'degraded',
-        'time': time.time(), 
-        'database': db_status,
-        'mode': 'local' if os.environ.get('USE_LOCAL_DB', 'false').lower() == 'true' else 'remote'
-    }
+    # Create MongoDB client with retry capabilities
+    client = MongoClient(mongo_uri)
+    db = client[db_name]
+    users_collection = db[collection_name]
+    
+    # Test connection
+    db.command('ping')
+    logger.info(f"Connected to MongoDB: {db_name}, Collection: {collection_name}")
+    
+    # Make sure the collection exists
+    if collection_name not in db.list_collection_names():
+        db.create_collection(collection_name)
+        logger.info(f"Created collection: {collection_name}")
+        
+    # Create index on email field if it doesn't exist
+    users_collection.create_index("email", unique=True)
+    
+except Exception as e:
+    logger.error(f"MongoDB connection error: {e}")
+    raise
 
+# API root endpoint
 @app.route('/api')
-def api():
-    return {'time': time.time(), 'status': 'API is running'}
+def api_root():
+    return jsonify({
+        'status': 'online',
+        'message': 'Authentication API is running'
+    })
 
+# User registration endpoint
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    
+    # Validate required fields
+    if not data or not data.get('email') or not data.get('password') or not data.get('name'):
+        return jsonify({"error": "Email, password, and name are required"}), 400
+    
+    # Check email format
+    email = data.get('email')
+    if '@' not in email or '.' not in email:
+        return jsonify({"error": "Invalid email format"}), 400
+    
+    # Check password strength
+    password = data.get('password')
+    if len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters"}), 400
+    
+    try:
+        # Check if user already exists
+        existing_user = users_collection.find_one({'email': email})
+        if existing_user:
+            return jsonify({"error": "Email already registered"}), 409
+        
+        # Create new user document
+        new_user = {
+            'email': email,
+            'name': data.get('name'),
+            'password_hash': generate_password_hash(password),
+            'created_at': datetime.utcnow(),
+            'profile': {
+                'skills': [],
+                'job_interests': [],
+                'profile_photo_url': ''
+            }
+        }
+        
+        # Insert into database
+        result = users_collection.insert_one(new_user)
+        
+        # Create safe version to return (without password)
+        safe_user = {
+            'id': str(result.inserted_id),
+            'email': email,
+            'name': data.get('name'),
+            'created_at': new_user['created_at'].isoformat()
+        }
+        
+        return jsonify({
+            "message": "Registration successful",
+            "user": safe_user
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        return jsonify({"error": "Registration failed. Please try again."}), 500
+
+# Login endpoint
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
+    
+    # Validate required fields
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({"error": "Email and password are required"}), 400
+    
     try:
-        # Get user by email using Flask-PyMongo
-        user = database.get_user_by_email(data.get('email'))
+        # Find user by email
+        user = users_collection.find_one({'email': data.get('email')})
         
-        if user and database.check_password(user, data.get('password')):
+        # Check if user exists and password matches
+        if user and check_password_hash(user['password_hash'], data.get('password')):
             # Create access token
-            user_id = user.get('_id')
-            access_token = create_access_token(identity=user_id)
+            user_identity = str(user['_id'])
+            access_token = create_access_token(identity=user_identity)
             
-            # Remove sensitive information
-            if 'password_hash' in user:
-                del user['password_hash']
-                
-            return jsonify(access_token=access_token, user=user), 200
+            # Prepare safe user object (without password)
+            safe_user = {
+                'id': user_identity,
+                'email': user['email'],
+                'name': user['name']
+            }
+            
+            return jsonify({
+                "message": "Login successful",
+                "access_token": access_token,
+                "user": safe_user
+            }), 200
         
-        return jsonify({"msg": "Invalid credentials"}), 401
+        # Invalid credentials
+        return jsonify({"error": "Invalid email or password"}), 401
+    
     except Exception as e:
         logger.error(f"Login error: {e}")
-        return jsonify({"msg": f"Login error: {str(e)}"}), 500
+        return jsonify({"error": "Login failed. Please try again."}), 500
 
-@app.route('/api/protected', methods=['GET'])
+# Logout endpoint
+@app.route('/api/logout', methods=['POST'])
 @jwt_required()
-def protected():
+def logout():
     try:
+        # Add token to revoked list
+        jti = get_jwt()["jti"]
+        revoked_tokens.add(jti)
+        
+        return jsonify({"message": "Successfully logged out"}), 200
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        return jsonify({"error": "Logout failed"}), 500
+
+# User profile endpoint
+@app.route('/api/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    try:
+        # Get current user ID from token
         current_user_id = get_jwt_identity()
-        user = database.get_user_by_id(current_user_id)
+        
+        # Find user by ID
+        user = users_collection.find_one({'_id': ObjectId(current_user_id)})
         
         if not user:
-            return jsonify({"msg": "User not found"}), 404
-            
-        return jsonify(logged_in_as=user.get('email')), 200
+            return jsonify({"error": "User not found"}), 404
+        
+        # Create safe user object (without password)
+        safe_user = {
+            'id': str(user['_id']),
+            'email': user['email'],
+            'name': user['name'],
+            'profile': user.get('profile', {})
+        }
+        
+        return jsonify({"user": safe_user}), 200
+    
     except Exception as e:
-        return jsonify({"msg": f"Error: {str(e)}"}), 500
-
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
+        logger.error(f"Profile error: {e}")
+        return jsonify({"error": "Could not retrieve profile"}), 500
 
 # Error handlers
-@app.errorhandler(500)
-def handle_500(e):
-    return jsonify({"msg": "Internal server error. Please try again later."}), 500
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Endpoint not found"}), 404
 
-@app.errorhandler(503)
-def handle_503(e):
-    return jsonify({"msg": "Service temporarily unavailable. Please try again later."}), 503
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
