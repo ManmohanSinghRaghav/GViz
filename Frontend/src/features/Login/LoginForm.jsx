@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const LoginForm = ({ onSubmit }) => {
+const LoginForm = ({ onSubmit, error }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -34,6 +34,12 @@ const LoginForm = ({ onSubmit }) => {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+      
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email address
