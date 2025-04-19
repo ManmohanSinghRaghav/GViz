@@ -75,26 +75,9 @@ export default api;
 // Auth service methods
 export const authService = {
   login: (credentials) => api.post('/api/login', credentials),
-  register: async (userData) => {
-    try {
-      // Check API health before registration
-      const health = await checkApiHealth();
-      
-      // If database is not connected, inform the user
-      if (health.dbStatus !== 'connected') {
-        console.warn(`Using API in ${health.mode} mode with database status: ${health.dbStatus}`);
-      }
-      
-      // Proceed with registration even if in degraded mode
-      return api.post('/api/user/register', userData);
-    } catch (error) {
-      console.error('Registration health check failed:', error);
-      // Continue with registration attempt anyway
-      return api.post('/api/user/register', userData);
-    }
-  },
-  getProfile: () => api.get('/api/user/profile'),
-  updateProfile: (data) => api.put('/api/user/profile', data),
+  register: (userData) => api.post('/api/register', userData),
+  logout: () => api.post('/api/logout'),
+  getProfile: () => api.get('/api/profile'),
 };
 
 // Recommendation service methods

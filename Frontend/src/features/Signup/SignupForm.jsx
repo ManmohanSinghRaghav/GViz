@@ -100,6 +100,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="name"
           name="name"
           type="text"
+          autoComplete="username"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.name}
@@ -116,6 +117,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="email"
           name="email"
           type="email"
+          autoComplete="email"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.email}
@@ -132,6 +134,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="password"
           name="password"
           type="password"
+          autoComplete="current-password"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.password}
@@ -167,6 +170,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="confirmPassword"
           name="confirmPassword"
           type="password"
+          autoComplete="current-password"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.confirmPassword}

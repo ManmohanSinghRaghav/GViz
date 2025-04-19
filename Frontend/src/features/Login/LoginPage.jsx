@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import LoginForm from './LoginForm';
 
 function LoginPage() {
   const [isLoginView, setIsLoginView] = useState(true);
@@ -10,43 +11,40 @@ function LoginPage() {
     name: '',
     rememberMe: false
   });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
+  const location = useLocation();
+  const { login, signup, isLoading, error, isAuthenticated } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Get message from location state (e.g., after registration)
+  const [message, setMessage] = useState(location.state?.message || '');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      if (isLoginView) {
-        const success = await login(formData.email, formData.password, formData.rememberMe);
-        if (success) {
-          navigate('/dashboard');
-        } else {
-          setError('Invalid credentials. Try admin@example.com / admin123');
-        }
-      } else {
-        const success = await signup(formData.email, formData.password, formData.name);
-        if (success) {
-          navigate('/dashboard');
-        } else {
-          setError('Registration failed');
-        }
-      }
-    } catch (err) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setIsLoading(false);
+    
+    let success;
+    if (isLoginView) {
+      success = await login(formData.email, formData.password);
+    } else {
+      success = await signup(formData.email, formData.password, formData.name);
+    }
+    
+    if (success) {
+      navigate('/dashboard');
     }
   };
 
   const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value
     }));
   };
 
@@ -57,7 +55,16 @@ function LoginPage() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {isLoginView ? 'Sign in to your account' : 'Create a new account'}
           </h2>
-          {error && <p className="mt-2 text-center text-sm text-red-600">{error}</p>}
+          {message && (
+            <div className="mt-2 p-2 bg-green-100 text-green-700 rounded text-center">
+              {message}
+            </div>
+          )}
+          {error && (
+            <div className="mt-2 p-2 bg-red-100 text-red-700 rounded text-center">
+              {error}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center space-x-4">
@@ -82,6 +89,7 @@ function LoginPage() {
                 <input
                   name="name"
                   type="text"
+                  autoComplete="name"
                   required
                   className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                   placeholder="Full name"
@@ -94,6 +102,7 @@ function LoginPage() {
               <input
                 name="email"
                 type="email"
+                autoComplete="email"
                 required
                 className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 ${isLoginView ? 'rounded-t-md' : ''} focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Email address"
@@ -108,6 +117,7 @@ function LoginPage() {
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
+                autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -121,10 +131,7 @@ function LoginPage() {
                 name="rememberMe"
                 type="checkbox"
                 checked={formData.rememberMe}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  rememberMe: e.target.checked
-                }))}
+                onChange={handleChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
@@ -132,11 +139,13 @@ function LoginPage() {
               </label>
             </div>
 
-            <div className="text-sm">
-              <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                Forgot your password?
-              </Link>
-            </div>
+            {isLoginView && (
+              <div className="text-sm">
+                <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                  Forgot your password?
+                </Link>
+              </div>
+            )}
           </div>
 
           <button
