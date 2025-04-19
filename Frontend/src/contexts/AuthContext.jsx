@@ -1,59 +1,23 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { mockAdmin } from '../Mock_data/authMock';
 import storage from '../utils/storage';
-import { authService } from '../services/api';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return storage.get('token') !== null;
-  });
-  
-  const [user, setUser] = useState(() => {
-    return storage.get('user');
-  });
-
+  const [isAuthenticated, setIsAuthenticated] = useState(() => storage.get('token') !== null);
+  const [user, setUser] = useState(() => storage.get('user'));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Check if token is still valid on app startup
-  useEffect(() => {
-    const validateToken = async () => {
-      const token = storage.get('token');
-      if (token) {
-        try {
-          // Get user profile to verify token is still valid
-          const userData = await authService.getProfile();
-          setUser(userData);
-          setIsAuthenticated(true);
-        } catch (err) {
-          console.error('Token validation failed:', err);
-          // Token is invalid, clear storage
-          storage.remove('token');
-          storage.remove('user');
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      }
-    };
-
-    validateToken();
-  }, []);
 
   const login = async (email, password) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // For development convenience, keep the mock login option
-      if (email === 'admin@example.com' && password === 'admin123') {
+      if (email === mockAdmin.email && password === mockAdmin.password) {
         const user = {
-          id: 1,
-          name: 'Admin User',
-          email: email,
-          role: 'admin',
-          avatar: `https://ui-avatars.com/api/?name=Admin+User`,
-          defaultPage: '/',
+          ...mockAdmin,
           token: 'mock-jwt-token'
         };
         
@@ -61,26 +25,6 @@ export const AuthProvider = ({ children }) => {
         storage.set('user', user);
         setIsAuthenticated(true);
         setUser(user);
-        setIsLoading(false);
-        return true;
-      }
-      
-      // For testing convenience, add a hardcoded test user
-      if (email === 'test@example.com' && password === 'password123') {
-        const user = {
-          id: 2,
-          name: 'Test User',
-          email: email,
-          role: 'user',
-          avatar: `https://ui-avatars.com/api/?name=Test+User`,
-          token: 'test-jwt-token'
-        };
-        
-        storage.set('token', user.token);
-        storage.set('user', user);
-        setIsAuthenticated(true);
-        setUser(user);
-        setIsLoading(false);
         return true;
       }
       
@@ -94,17 +38,15 @@ export const AuthProvider = ({ children }) => {
       setUser(response.user);
       return true;
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.msg || 'Invalid credentials');
+      setError(err.message);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     setIsLoading(true);
-    
     try {
       // Try to call logout API if authenticated
       if (isAuthenticated) {
@@ -121,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setUser(null);
     } catch (err) {
-      setError(err.message || 'Logout failed');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -132,26 +74,50 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      // Validate required fields
-      if (!userData.email || !userData.name || !userData.password) {
-        throw { msg: 'Please provide all required information' };
-      }
+      const newUser = {
+        ...userData,
+        id: Date.now(),
+        role: 'user',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}`,
+        token: 'mock-jwt-token',
+        bio: userData.bio || '',
+        location: userData.location || '',
+        company: userData.company || '',
+        website: userData.website || '',
+        skills: userData.skills || [],
+        education: userData.education || [],
+        experience: userData.experience || []
+      };
       
-      // Call the API for registration
-      const response = await authService.signup(userData);
-      
-      // If signup returns a token, store it and log user in
-      if (response.access_token) {
-        storage.set('token', response.access_token);
-        storage.set('user', response.user);
-        setIsAuthenticated(true);
-        setUser(response.user);
-      }
-      
+      storage.set('token', newUser.token);
+      storage.set('user', newUser);
+      setIsAuthenticated(true);
+      setUser(newUser);
       return true;
     } catch (err) {
-      console.error('Signup error:', err);
-      setError(err.msg || 'Registration failed');
+      setError(err.message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const updatedUser = {
+        ...user,
+        ...profileData,
+        avatar: profileData.avatar || user.avatar
+      };
+      
+      storage.set('user', updatedUser);
+      setUser(updatedUser);
+      return true;
+    } catch (err) {
+      setError(err.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -164,7 +130,8 @@ export const AuthProvider = ({ children }) => {
       user, 
       login, 
       logout, 
-      signup, 
+      signup,
+      updateProfile, 
       isLoading, 
       error 
     }}>

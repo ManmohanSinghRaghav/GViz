@@ -23,7 +23,7 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
   const authButton = isAuthenticated ? (
     <button
       onClick={handleLogout}
-      className="flex items-center w-full px-4 py-2 text-sm rounded-lg text-gray-300 hover:bg-gray-700"
+      className="flex items-center w-full px-4 py-2 text-sm rounded-lg text-[#444] hover:bg-gray-700"
     >
       <svg
         className="w-5 h-5"
@@ -41,7 +41,7 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
   ) : (
     <Link
       to="/login"
-      className="flex items-center px-4 py-2 text-sm rounded-lg text-gray-300 hover:bg-gray-700"
+      className="flex items-center px-4 py-2 text-sm rounded-lg text-[#444] hover:bg-gray-700"
     >
       <svg
         className="w-5 h-5"
@@ -60,55 +60,60 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
 
   return (
     <div className={`
-      min-h-screen bg-gray-800 text-white
+      fixed top-0 left-0 h-screen text-[#444]
       transition-all duration-300 ease-in-out
-      border-r border-gray-700 fixed
+      border-r border-violet-500/20
       ${isOpen ? 'w-64 md:w-64' : 'w-16 md:w-16'}
-      z-[1000] overflow-hidden
-      md:relative
+      z-[1040]
+      bg-gradient-to-b from-slate-900/90 via-purple-900/80 to-slate-900/90
+      backdrop-filter backdrop-blur-lg
     `}>
-      <div className="h-screen bg-gray-800 text-white flex flex-col relative">
-        <div className="p-4 overflow-hidden whitespace-nowrap flex items-center justify-between relative z-[1001]">
-          {isOpen && <span className="font-semibold">GViz</span>}
+      <div className="h-full flex flex-col">
+        <div className="p-4 overflow-hidden whitespace-nowrap flex items-center justify-between border-b border-violet-500/30">
+          {isOpen && <span className="font-semibold text-violet-300">GViz</span>}
           <button
             onClick={() => onToggleSidebar(!isOpen)}
-            className="p-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="p-2 rounded-lg hover:bg-violet-600/20 focus:outline-none focus:ring-2 focus:ring-violet-500 z-[1050] transition-colors"
             aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
             aria-expanded={isOpen}
           >
-            <FaBars className="w-5 h-5" />
+            <FaBars className="w-5 h-5 text-violet-300" />
           </button>
         </div>
         
-        <nav className="flex-1 space-y-1 px-2 py-4 relative z-[1001]" aria-label="Main navigation">
-          <Link to="/" className="flex items-center px-4 py-2 text-sm rounded-lg text-gray-300 hover:bg-gray-700">
-            <FaHome />
-            {isOpen && <span className="ml-3">Home</span>}
-          </Link>
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`
-                  flex items-center px-4 py-2 text-sm rounded-lg
-                  ${isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700'}
-                `}
-              >
-                {item.icon}
-                {isOpen && <span className="ml-3">{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <nav className="flex-1 space-y-1 px-2 py-4" aria-label="Main navigation">
+            <Link to="/" className="flex items-center px-4 py-2 text-sm rounded-lg text-violet-300 hover:bg-gradient-to-r hover:from-violet-600/20 hover:to-purple-600/20">
+              <FaHome />
+              {isOpen && <span className="ml-3">Home</span>}
+            </Link>
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`
+                    flex items-center px-4 py-2 text-sm rounded-lg
+                    ${isActive 
+                      ? 'bg-gradient-to-r from-violet-600/30 to-purple-600/30 text-[#444]' 
+                      : 'text-[#444] hover:bg-gradient-to-r hover:from-violet-600/20 hover:to-purple-600/20'}
+                  `}
+                >
+                  {item.icon}
+                  {isOpen && <span className="ml-3">{item.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-        <div className="px-2 py-4 border-t border-gray-700 relative z-[1001]">
+        <div className="px-2 py-4 border-t border-gray-700">
           {authButton}
         </div>
 
         {isAuthenticated && (
-          <div className="mt-auto border-t border-gray-700 relative z-[1001]">
+          <div className="mt-auto border-t border-gray-700">
             <Profile isExpanded={isOpen} />
           </div>
         )}
