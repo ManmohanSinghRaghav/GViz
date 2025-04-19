@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setIsLoading(true);
     try {
       // Try to call logout API if authenticated
@@ -56,8 +56,6 @@ export const AuthProvider = ({ children }) => {
           console.warn('Logout API call failed, clearing locally anyway');
         }
       }
-      
-      // Always clean up local storage
       storage.remove('token');
       storage.remove('user');
       setIsAuthenticated(false);
