@@ -2,14 +2,14 @@ import React from 'react';
 
 function Header({ onToggleSidebar }) {
   return (
-    <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
+    <header className="bg-white border-b px-3 py-2 flex items-center justify-between">
       <div className="flex items-center">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-md hover:bg-gray-100"
+          className="p-1.5 rounded-md hover:bg-gray-100"
         >
           <svg 
-            className="w-6 h-6" 
+            className="w-5 h-5" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -22,7 +22,6 @@ function Header({ onToggleSidebar }) {
             />
           </svg>
         </button>
-        <h1 className="ml-3 text-xl font-bold">AI Job Mentor</h1>
       </div>
     </header>
   );
