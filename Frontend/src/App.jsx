@@ -17,6 +17,7 @@ import MaterialView from './features/MaterialView/MaterialView'; // Import Mater
 import TutorialView from './features/TutorialView/TutorialView'; // Import TutorialView
 import ProfilePage from './features/Profile/ProfilePage'; // Import ProfilePage
 import LoginPage from './features/Auth/LoginPage'; // Import LoginPage
+import CompleteProfile from './features/Profile/CompleteProfile'; // Import CompleteProfile
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);  // Changed to false
@@ -32,20 +33,34 @@ function App() {
             path="/*"
             element={
               <ProtectedRoute>
-                <div className="flex min-h-screen bg-gray-100">
+                <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/50 to-slate-950">
                   <Sidebar 
                     isOpen={isSidebarOpen} 
-                    onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+                    onToggleSidebar={setIsSidebarOpen} 
                   />
-                  <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
+                  <main className={`
+                    flex-1 relative 
+                    transition-all duration-300 
+                    ${isSidebarOpen ? 'ml-64' : 'ml-16'}
+                    pt-16
+                    bg-gradient-to-b from-slate-900/50 via-purple-900/30 to-slate-900/50
+                  `}>
                     <MainNav />
-                    <div className="container mx-auto px-4 py-6 max-w-7xl mt-16">
+                    <div className="container mx-auto px-4 py-6 max-w-7xl mt-16 bg-gradient-to-b from-slate-900/90 via-purple-900/80 to-slate-900/90 backdrop-blur-lg rounded-lg border border-violet-500/20">
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/journey" element={<MyJourney />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
+                        <Route 
+                          path="/complete-profile" 
+                          element={
+                            <ProtectedRoute>
+                              <CompleteProfile />
+                            </ProtectedRoute>
+                          } 
+                        />
                         <Route path="*" element={<Navigate to="/" />} />
                       </Routes>
                     </div>

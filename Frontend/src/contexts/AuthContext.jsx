@@ -1,87 +1,50 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { mockAdmin, mockUsers } from '../Mock_data/authMock';
+import { mockAdmin } from '../Mock_data/authMock';
 import storage from '../utils/storage';
-import authService from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return storage.get('token') !== null;
-  });
-  
-  const [user, setUser] = useState(() => {
-    return storage.get('user');
-  });
-
+  const [isAuthenticated, setIsAuthenticated] = useState(() => storage.get('token') !== null);
+  const [user, setUser] = useState(() => storage.get('user'));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Check if token is still valid on app startup
-  useEffect(() => {
-    const validateToken = async () => {
-      const token = storage.get('token');
-      if (token) {
-        try {
-          // Get user profile to verify token is still valid
-          const res = await authService.getProfile();
-          setUser(res.data.user);
-          setIsAuthenticated(true);
-        } catch (err) {
-          // Token is invalid, clear storage
-          storage.remove('token');
-          storage.remove('user');
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      }
-    };
-
-    validateToken();
-  }, []);
 
   const login = async (email, password) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Mock login validation
-      if (email === 'admin@example.com' && password === 'admin123') {
+      if (email === mockAdmin.email && password === mockAdmin.password) {
         const user = {
-          id: 1,
-          name: 'Admin User',
-          email: email,
-          role: 'admin',
-          avatar: `https://ui-avatars.com/api/?name=Admin+User`,
-          defaultPage: '/',
-          token: 'mock-jwt-token' // Add mock token
+          ...mockAdmin,
+          token: 'mock-jwt-token'
         };
         
         storage.set('token', user.token);
         storage.set('user', user);
         setIsAuthenticated(true);
         setUser(user);
-        setIsLoading(false);
         return true;
       }
       throw new Error('Invalid credentials');
     } catch (err) {
-      setError(err.message || 'Login failed');
-      setIsLoading(false);
+      setError(err.message);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     setIsLoading(true);
-    
     try {
       storage.remove('token');
       storage.remove('user');
       setIsAuthenticated(false);
       setUser(null);
     } catch (err) {
-      setError(err.message || 'Logout failed');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -97,19 +60,48 @@ export const AuthProvider = ({ children }) => {
         id: Date.now(),
         role: 'user',
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}`,
-        token: 'mock-jwt-token'
+        token: 'mock-jwt-token',
+        bio: userData.bio || '',
+        location: userData.location || '',
+        company: userData.company || '',
+        website: userData.website || '',
+        skills: userData.skills || [],
+        education: userData.education || [],
+        experience: userData.experience || []
       };
       
       storage.set('token', newUser.token);
       storage.set('user', newUser);
       setIsAuthenticated(true);
       setUser(newUser);
-      setIsLoading(false);
       return true;
     } catch (err) {
-      setError(err.message || 'Registration failed');
-      setIsLoading(false);
+      setError(err.message);
       return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const updatedUser = {
+        ...user,
+        ...profileData,
+        avatar: profileData.avatar || user.avatar
+      };
+      
+      storage.set('user', updatedUser);
+      setUser(updatedUser);
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,7 +111,8 @@ export const AuthProvider = ({ children }) => {
       user, 
       login, 
       logout, 
-      signup, 
+      signup,
+      updateProfile, 
       isLoading, 
       error 
     }}>

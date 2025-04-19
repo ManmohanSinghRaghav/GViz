@@ -74,7 +74,16 @@ const MainNav = () => {
   };
 
   return (
-    <nav className="tech-card fixed top-0 right-0 left-0 z-50 border-b border-blue-500/30">
+    <nav className="fixed top-0 right-0 left-0 
+      bg-gradient-to-r from-slate-900/95 via-purple-900/95 to-slate-900/95 
+      backdrop-filter backdrop-blur-md 
+      border-b border-violet-500/20 
+      z-[1001] 
+      ml-16 
+      h-16
+      transition-all duration-300 
+      shadow-lg shadow-violet-500/10"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left section - Logo and Brand */}
@@ -85,7 +94,7 @@ const MainNav = () => {
                 src="/logo.png"
                 alt="GViz Logo"
               />
-              <span className="tech-text ml-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+              <span className="tech-text ml-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-purple-600">
                 GViz
               </span>
             </div>
