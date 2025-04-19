@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start-api": "cd ../Backend && flask run --no-debugger",
+    "start-api": "cd ..\\Backend && .\\venv\\Scripts\\flask --app app.py run --no-debugger",
     "build": "vite build",
     "lint": "eslint .",
-    "test-api": "cd ../Backend && flask test",
+    "test-api": "cd ..\\Backend && .\\venv\\Scripts\\flask --app app.py test",
     "preview": "vite preview"
   },
   "dependencies": {
