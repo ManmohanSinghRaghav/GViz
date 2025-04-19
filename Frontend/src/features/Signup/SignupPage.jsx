@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import SignupForm from './SignupForm';
 import { useNavigate, Link } from 'react-router-dom';
 import SocialLogin from '../../components/SocialLogin/SocialLogin';
-import { authService } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signup, isLoading, error: authError } = useAuth();
   const [error, setError] = useState(null);
   const [verificationSent, setVerificationSent] = useState(false);
 
   const handleSignup = async (userData) => {
     try {
-      setIsLoading(true);
       setError(null);
       
       // Validate terms acceptance
@@ -25,16 +24,23 @@ const SignupPage = () => {
         throw new Error('Password does not meet strength requirements');
       }
 
-      // TODO: Implement actual signup logic
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Call the signup function from AuthContext
+      const success = await signup({
+        name: userData.name,
+        email: userData.email,
+        password: userData.password
+      });
       
-      setVerificationSent(true);
-      // navigate('/login');
+      if (success) {
+        setVerificationSent(true);
+        // Or navigate directly to dashboard if auto-login is enabled
+        // navigate('/dashboard');
+      } else {
+        throw new Error(authError || 'Registration failed. Please try again.');
+      }
     } catch (error) {
       setError(error.message);
       console.error('Signup failed:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -52,23 +58,17 @@ const SignupPage = () => {
 
   const handleGoogleSignup = async () => {
     try {
-      setIsLoading(true);
       console.log('Google signup attempt');
     } catch (error) {
       console.error('Google signup failed:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleGithubSignup = async () => {
     try {
-      setIsLoading(true);
       console.log('GitHub signup attempt');
     } catch (error) {
       console.error('GitHub signup failed:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -97,6 +97,11 @@ const SignupPage = () => {
         {error && (
           <div className="mt-2 p-2 bg-red-100 text-red-600 text-sm rounded">
             {error}
+          </div>
+        )}
+        {authError && !error && (
+          <div className="mt-2 p-2 bg-red-100 text-red-600 text-sm rounded">
+            {authError}
           </div>
         )}
         <p className="mt-2 text-center text-sm text-gray-600">

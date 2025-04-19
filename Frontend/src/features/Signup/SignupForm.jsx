@@ -86,9 +86,9 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
-      {error && (
+      {errors.general && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4">
-          <p className="text-red-700">{error}</p>
+          <p className="text-red-700">{errors.general}</p>
         </div>
       )}
       

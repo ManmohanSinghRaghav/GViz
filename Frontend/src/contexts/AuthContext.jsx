@@ -27,7 +27,16 @@ export const AuthProvider = ({ children }) => {
         setUser(user);
         return true;
       }
-      throw new Error('Invalid credentials');
+      
+      // Actual API login
+      const response = await authService.login(email, password);
+      
+      // Store data from response
+      storage.set('token', response.access_token);
+      storage.set('user', response.user);
+      setIsAuthenticated(true);
+      setUser(response.user);
+      return true;
     } catch (err) {
       setError(err.message);
       return false;
@@ -39,6 +48,16 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setIsLoading(true);
     try {
+      // Try to call logout API if authenticated
+      if (isAuthenticated) {
+        try {
+          await authService.logout();
+        } catch (err) {
+          console.warn('Logout API call failed, clearing locally anyway');
+        }
+      }
+      
+      // Always clean up local storage
       storage.remove('token');
       storage.remove('user');
       setIsAuthenticated(false);

@@ -1,87 +1,140 @@
 import axios from 'axios';
 import storage from '../utils/storage';
 
-// Create axios instance with custom config
+// Base API URL - use relative URL to work with Vite's proxy
+const API_BASE_URL = '/api';
+
+// Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000, // 15 second timeout
+  // Don't use withCredentials when using Bearer token auth
   withCredentials: false,
 });
 
-// Request interceptor for adding auth token
-api.interceptors.request.use((config) => {
-  const token = storage.get('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => {
-  console.error('API request error:', error);
-  return Promise.reject(error);
-});
-
-// Response interceptor for error handling
-api.interceptors.response.use(
-  response => response,
-  error => {
-    console.error('API response error:', error);
-    
-    // Handle specific error cases
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      if (error.response.status === 401) {
-        // Handle authentication errors
-        storage.remove('token');
-        storage.remove('user');
-        window.location.href = '/login';
-      } else if (error.response.status === 503) {
-        // Service unavailable - could add global notification here
-        console.error('Service temporarily unavailable');
-      }
-    } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received from server');
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.error('Error setting up request:', error.message);
+// Add request interceptor to include auth token in requests
+api.interceptors.request.use(
+  (config) => {
+    const token = storage.get('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     
+    // Debug request config
+    console.log(`🚀 Request: ${config.method.toUpperCase()} ${config.url}`, { 
+      headers: config.headers,
+      data: config.data
+    });
+    
+    return config;
+  },
+  (error) => {
+    console.error('❌ Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Check API health before making critical requests
-const checkApiHealth = async () => {
-  try {
-    const response = await api.get('/api/health');
-    console.log('API health status:', response.data);
-    return {
-      isHealthy: response.data.status === 'healthy',
-      dbStatus: response.data.database,
-      mode: response.data.mode
-    };
-  } catch (error) {
-    console.error('API health check failed:', error);
-    return { isHealthy: false, dbStatus: 'unknown', mode: 'unknown' };
+// Add response interceptor to handle common errors
+api.interceptors.response.use(
+  (response) => {
+    // Debug successful response
+    console.log(`✅ Response: ${response.status}`, response.data);
+    return response;
+  },
+  (error) => {
+    // Log the error details for debugging
+    console.error('❌ API Error:', error);
+    
+    if (error.response) {
+      console.log('Response data:', error.response.data);
+      console.log('Response status:', error.response.status);
+    } else if (error.request) {
+      console.log('No response received', error.request);
+    } else {
+      console.log('Error setting up request:', error.message);
+    }
+    
+    // Handle 401 Unauthorized errors (token expired/invalid)
+    if (error.response && error.response.status === 401) {
+      storage.remove('token');
+      storage.remove('user');
+    }
+    
+    return Promise.reject(error.response?.data || { 
+      msg: error.message || 'Server error occurred' 
+    });
+  }
+);
+
+// Auth service functions
+export const authService = {
+  login: async (email, password) => {
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      return response.data;
+    } catch (error) {
+      console.error('Login API error:', error);
+      throw error;
+    }
+  },
+
+  signup: async (userData) => {
+    try {
+      const response = await api.post('/user/register', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Signup API error:', error);
+      throw error;
+    }
+  },
+
+  getProfile: async () => {
+    try {
+      const response = await api.get('/user/profile');
+      return response.data;
+    } catch (error) {
+      console.error('Profile API error:', error);
+      throw error;
+    }
+  },
+  
+  logout: async () => {
+    try {
+      const response = await api.post('/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('Logout API error:', error);
+      throw error;
+    }
+  }
+};
+
+// Chat service functions
+export const chatService = {
+  sendMessage: async (message, image = null) => {
+    try {
+      const data = { message };
+      
+      // If image is provided, include it as base64
+      if (image) {
+        data.image = image;
+      }
+      
+      console.log('Sending chat request with data:', { 
+        message, 
+        hasImage: !!image 
+      });
+      
+      const response = await api.post('/api/chat', data);
+      console.log('Chat API response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Chat API error:', error);
+      throw error;
+    }
   }
 };
 
 export default api;
-
-// Auth service methods
-export const authService = {
-  login: (credentials) => api.post('/api/login', credentials),
-  register: (userData) => api.post('/api/register', userData),
-  logout: () => api.post('/api/logout'),
-  getProfile: () => api.get('/api/profile'),
-};
-
-// Recommendation service methods
-export const recommendationService = {
-  getJobRecommendations: () => api.get('/api/recommendation/job'),
-  getSkillRecommendations: () => api.get('/api/recommendation/skill'),
-};

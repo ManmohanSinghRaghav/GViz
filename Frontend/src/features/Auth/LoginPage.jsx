@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaEnvelope, FaLock, FaUser, FaKey, FaShieldAlt } from 'react-icons/fa';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, error: authError, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,14 +17,22 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
+      if (!formData.email || !formData.password) {
+        throw new Error('Please enter both email and password');
+      }
+      
+      console.log('Attempting login with:', { email: formData.email, password: '****' });
+      
       const success = await login(formData.email, formData.password);
       if (success) {
-        navigate('/'); // Changed from '/dashboard' to '/'
+        navigate('/');
       } else {
-        setError('Invalid credentials. Try admin@example.com / admin123');
+        // Display the error from auth context or a default message
+        setError(authError || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError(err.message || 'An error occurred');
+      setError(err.message || 'An error occurred during login');
+      console.error('Login form error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +63,14 @@ const LoginPage = () => {
             Visualize • Analyze • Sync
           </div>
         </div>
+
+        {showDebugInfo && (
+          <div className="bg-gray-800 p-3 rounded text-xs text-gray-300">
+            <p className="font-bold mb-1">Test Accounts:</p>
+            <p>Email: <span className="text-green-400">admin@example.com</span> / Password: <span className="text-green-400">admin123</span></p>
+            <p>Email: <span className="text-green-400">test@example.com</span> / Password: <span className="text-green-400">password123</span></p>
+          </div>
+        )}
 
         {/* Main Card Container - Adjusted padding */}
         <div className="relative z-40">
