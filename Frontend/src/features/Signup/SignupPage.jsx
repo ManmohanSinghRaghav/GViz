@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SignupForm from './SignupForm';
 import { useNavigate, Link } from 'react-router-dom';
 import SocialLogin from '../../components/SocialLogin/SocialLogin';
+import { authService } from '../../services/api';
 
 const SignupPage = () => {
   const navigate = useNavigate();

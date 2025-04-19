@@ -20,7 +20,13 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
 
     if (!formData.name) validationErrors.name = 'Name is required';
     if (!formData.email) validationErrors.email = 'Email is required';
-    if (!formData.password) validationErrors.password = 'Password is required';
+    
+    if (!formData.password) {
+      validationErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      validationErrors.password = 'Password must be at least 8 characters';
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       validationErrors.confirmPassword = 'Passwords do not match';
     }
@@ -80,6 +86,12 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+      
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Full Name
@@ -88,6 +100,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="name"
           name="name"
           type="text"
+          autoComplete="username"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.name}
@@ -104,6 +117,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="email"
           name="email"
           type="email"
+          autoComplete="email"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.email}
@@ -120,6 +134,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="password"
           name="password"
           type="password"
+          autoComplete="current-password"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.password}
@@ -155,6 +170,7 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
           id="confirmPassword"
           name="confirmPassword"
           type="password"
+          autoComplete="current-password"
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           value={formData.confirmPassword}

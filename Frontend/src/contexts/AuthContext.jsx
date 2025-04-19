@@ -1,64 +1,128 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { mockAdmin, mockUsers } from '../Mock_data/authMock';
+import storage from '../utils/storage';
+import authService from '../services/authService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('isAuthenticated') === 'true';
+    return storage.get('token') !== null;
   });
   
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    return storage.get('user');
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Check if token is still valid on app startup
+  useEffect(() => {
+    const validateToken = async () => {
+      const token = storage.get('token');
+      if (token) {
+        try {
+          // Get user profile to verify token is still valid
+          const res = await authService.getProfile();
+          setUser(res.data.user);
+          setIsAuthenticated(true);
+        } catch (err) {
+          // Token is invalid, clear storage
+          storage.remove('token');
+          storage.remove('user');
+          setIsAuthenticated(false);
+          setUser(null);
+        }
+      }
+    };
+
+    validateToken();
+  }, []);
+
   const login = async (email, password) => {
-    // Mock login validation
-    if (email === 'admin@example.com' && password === 'admin123') {
-      const user = {
-        id: 1,
-        name: 'Admin User',
-        email: email,
-        role: 'admin',
-        avatar: `https://ui-avatars.com/api/?name=Admin+User`,
-        defaultPage: '/' // Add default page property
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Mock login validation
+      if (email === 'admin@example.com' && password === 'admin123') {
+        const user = {
+          id: 1,
+          name: 'Admin User',
+          email: email,
+          role: 'admin',
+          avatar: `https://ui-avatars.com/api/?name=Admin+User`,
+          defaultPage: '/',
+          token: 'mock-jwt-token' // Add mock token
+        };
+        
+        storage.set('token', user.token);
+        storage.set('user', user);
+        setIsAuthenticated(true);
+        setUser(user);
+        setIsLoading(false);
+        return true;
+      }
+      throw new Error('Invalid credentials');
+    } catch (err) {
+      setError(err.message || 'Login failed');
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    
+    try {
+      storage.remove('token');
+      storage.remove('user');
+      setIsAuthenticated(false);
+      setUser(null);
+    } catch (err) {
+      setError(err.message || 'Logout failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signup = async (userData) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const newUser = {
+        ...userData,
+        id: Date.now(),
+        role: 'user',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}`,
+        token: 'mock-jwt-token'
       };
       
+      storage.set('token', newUser.token);
+      storage.set('user', newUser);
       setIsAuthenticated(true);
-      setUser(user);
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('user', JSON.stringify(user));
+      setUser(newUser);
+      setIsLoading(false);
       return true;
+    } catch (err) {
+      setError(err.message || 'Registration failed');
+      setIsLoading(false);
+      return false;
     }
-    return false;
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');
-  };
-
-  const signup = (email, password, name) => {
-    const newUser = {
-      email,
-      password,
-      name,
-      role: 'user',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`
-    };
-    
-    setIsAuthenticated(true);
-    setUser(newUser);
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('user', JSON.stringify(newUser));
-    return true;
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, signup }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      login, 
+      logout, 
+      signup, 
+      isLoading, 
+      error 
+    }}>
       {children}
     </AuthContext.Provider>
   );
