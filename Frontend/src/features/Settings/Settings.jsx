@@ -1,99 +1,112 @@
 import React, { useState } from 'react';
+import { FaUser, FaBell, FaShieldAlt, FaPalette, FaMoon, FaSun } from 'react-icons/fa';
 
 const Settings = () => {
-  const [settings, setSettings] = useState({
-    notifications: {
-      email: true,
-      desktop: false,
-      updates: true
-    },
-    theme: 'light',
-    language: 'en',
-  });
-
-  const handleChange = (section, field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [section]: typeof field === 'string' 
-        ? value 
-        : { ...prev[section], [field]: value }
-    }));
-  };
+  const [darkMode, setDarkMode] = useState(true);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-8">Settings</h1>
-      
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
+
       {/* Profile Settings */}
-      <div className="bg-white rounded-lg shadow mb-6 p-6">
-        <h2 className="text-xl font-semibold mb-4">Profile Settings</h2>
+      <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
+        <div className="flex items-center gap-3 mb-6">
+          <FaUser className="text-violet-400 text-xl" />
+          <h2 className="text-xl font-semibold text-white">Profile Settings</h2>
+        </div>
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
-            <button className="px-4 py-2 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
-              Change Avatar
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Display Name"
+              className="bg-slate-800/50 text-slate-200 rounded-lg px-4 py-2 
+                border border-violet-500/20 focus:outline-none focus:ring-2 
+                focus:ring-violet-500/40"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              className="bg-slate-800/50 text-slate-200 rounded-lg px-4 py-2 
+                border border-violet-500/20 focus:outline-none focus:ring-2 
+                focus:ring-violet-500/40"
+            />
           </div>
+          <textarea
+            placeholder="Bio"
+            className="w-full bg-slate-800/50 text-slate-200 rounded-lg px-4 py-2 
+              border border-violet-500/20 focus:outline-none focus:ring-2 
+              focus:ring-violet-500/40"
+            rows="3"
+          />
         </div>
       </div>
 
-      {/* Preferences */}
-      <div className="bg-white rounded-lg shadow mb-6 p-6">
-        <h2 className="text-xl font-semibold mb-4">Preferences</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Theme
-            </label>
-            <select
-              value={settings.theme}
-              onChange={(e) => handleChange('theme', null, e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Language
-            </label>
-            <select
-              value={settings.language}
-              onChange={(e) => handleChange('language', null, e.target.value)}
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-            </select>
-          </div>
+      {/* Notification Settings */}
+      <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
+        <div className="flex items-center gap-3 mb-6">
+          <FaBell className="text-violet-400 text-xl" />
+          <h2 className="text-xl font-semibold text-white">Notifications</h2>
         </div>
-      </div>
-
-      {/* Notifications */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Notifications</h2>
         <div className="space-y-4">
-          {Object.entries(settings.notifications).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 capitalize">
-                {key} Notifications
-              </span>
+          {['Email Notifications', 'Push Notifications', 'Course Updates'].map((item, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <span className="text-slate-200">{item}</span>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={value}
-                  onChange={(e) => handleChange('notifications', key, e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <input type="checkbox" className="sr-only peer" />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer 
+                  peer-checked:after:translate-x-full peer-checked:after:border-white 
+                  after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+                  after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all 
+                  peer-checked:bg-violet-600" />
               </label>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Theme Settings */}
+      <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
+        <div className="flex items-center gap-3 mb-6">
+          <FaPalette className="text-violet-400 text-xl" />
+          <h2 className="text-xl font-semibold text-white">Appearance</h2>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-slate-200">Dark Mode</span>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-lg bg-slate-800/50 border border-violet-500/20
+              hover:bg-violet-600/20 transition-colors"
+          >
+            {darkMode ? 
+              <FaMoon className="text-violet-400" /> : 
+              <FaSun className="text-violet-400" />
+            }
+          </button>
+        </div>
+      </div>
+
+      {/* Security Settings */}
+      <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
+        <div className="flex items-center gap-3 mb-6">
+          <FaShieldAlt className="text-violet-400 text-xl" />
+          <h2 className="text-xl font-semibold text-white">Security</h2>
+        </div>
+        <button
+          className="w-full px-4 py-2 rounded-lg bg-violet-600/20 text-slate-200
+            border border-violet-500/20 hover:bg-violet-600/30 transition-colors"
+        >
+          Change Password
+        </button>
+      </div>
+
+      {/* Save Button */}
+      <button
+        className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 
+          text-white font-medium hover:shadow-lg hover:shadow-violet-500/25 
+          transition-all duration-300"
+      >
+        Save Changes
+      </button>
     </div>
   );
 };

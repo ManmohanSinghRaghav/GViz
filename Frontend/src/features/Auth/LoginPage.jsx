@@ -44,7 +44,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950/50 to-slate-950 px-4 overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center 
+      bg-[radial-gradient(ellipse_at_top,#1a1a3c,#0f172a)] 
+      before:absolute before:inset-0 
+      before:bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08)_0%,transparent_100%)] px-4">
       <div className="relative w-full max-w-md">
         {/* Logo and Title Section */}
         <div className="mb-12 text-center">
@@ -53,10 +56,10 @@ const LoginPage = () => {
             alt="SynqTech Logo" 
             className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]"
           />
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-violet-400 via-purple-400 to-violet-400 text-transparent bg-clip-text">
+          <h1 className="text-4xl font-bold mb-2 text-white">
             SynqTech
           </h1>
-          <div className="text-violet-400/60 text-sm tracking-wider">
+          <div className="text-white/60 text-sm tracking-wider">
             Visualize • Analyze • Sync
           </div>
         </div>
@@ -113,7 +116,7 @@ const LoginPage = () => {
                       </div>
                     )}
                     <div>
-                      <label className="block text-sm font-medium text-gray-300">
+                      <label className="block text-sm font-medium text-white">
                         Email
                       </label>
                       <div className="relative mb-4">
@@ -128,7 +131,7 @@ const LoginPage = () => {
                           className="w-full pl-10 pr-4 py-3 rounded-lg 
                             bg-slate-900/50 
                             border border-violet-500/20
-                            text-[#444]
+                            text-white
                             placeholder-violet-400/50
                             focus:outline-none focus:ring-2 focus:ring-violet-500/40
                             transition-all duration-300"
@@ -138,7 +141,7 @@ const LoginPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-300">
+                      <label className="block text-sm font-medium text-white">
                         Password
                       </label>
                       <div className="relative mb-6">
@@ -153,7 +156,7 @@ const LoginPage = () => {
                           className="w-full pl-10 pr-4 py-3 rounded-lg 
                             bg-slate-900/50 
                             border border-violet-500/20
-                            text-[#444]
+                            text-white
                             placeholder-violet-400/50
                             focus:outline-none focus:ring-2 focus:ring-violet-500/40
                             transition-all duration-300"
@@ -207,7 +210,7 @@ const LoginPage = () => {
                       className="w-full pl-10 pr-4 py-3 rounded-lg 
                         bg-slate-900/50 
                         border border-violet-500/20
-                        text-[#444]
+                        text-white
                         placeholder-violet-400/50
                         focus:outline-none focus:ring-2 focus:ring-violet-500/40
                         transition-all duration-300"
@@ -226,7 +229,7 @@ const LoginPage = () => {
                       className="w-full pl-10 pr-4 py-3 rounded-lg 
                         bg-slate-900/50 
                         border border-violet-500/20
-                        text-[#444]
+                        text-white
                         placeholder-violet-400/50
                         focus:outline-none focus:ring-2 focus:ring-violet-500/40
                         transition-all duration-300"
@@ -245,7 +248,7 @@ const LoginPage = () => {
                       className="w-full pl-10 pr-4 py-3 rounded-lg 
                         bg-slate-900/50 
                         border border-violet-500/20
-                        text-[#444]
+                        text-white
                         placeholder-violet-400/50
                         focus:outline-none focus:ring-2 focus:ring-violet-500/40
                         transition-all duration-300"
