@@ -33,7 +33,12 @@ function App() {
             path="/*"
             element={
               <ProtectedRoute>
-                <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/50 to-slate-950">
+                <div className="flex min-h-screen bg-gradient-to-br 
+                  from-slate-950 via-purple-950/30 to-slate-950
+                  before:absolute before:inset-0 
+                  before:bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.05)_0%,transparent_100%)]
+                  before:animate-pulse"
+                >
                   <Sidebar 
                     isOpen={isSidebarOpen} 
                     onToggleSidebar={setIsSidebarOpen} 

@@ -23,10 +23,10 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
   const authButton = isAuthenticated ? (
     <button
       onClick={handleLogout}
-      className="flex items-center w-full px-4 py-2 text-sm rounded-lg text-[#444] hover:bg-gray-700"
+      className="flex items-center w-full px-4 py-2 text-sm rounded-lg text-slate-200 hover:bg-violet-600/20"
     >
       <svg
-        className="w-5 h-5"
+        className="w-5 h-5 text-slate-200"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -41,10 +41,10 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
   ) : (
     <Link
       to="/login"
-      className="flex items-center px-4 py-2 text-sm rounded-lg text-[#444] hover:bg-gray-700"
+      className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-200 hover:bg-violet-600/20"
     >
       <svg
-        className="w-5 h-5"
+        className="w-5 h-5 text-slate-200"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -70,7 +70,7 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
     `}>
       <div className="h-full flex flex-col">
         <div className="p-4 overflow-hidden whitespace-nowrap flex items-center justify-between border-b border-violet-500/30">
-          {isOpen && <span className="font-semibold text-violet-300">GViz</span>}
+          {isOpen && <span className="font-semibold text-white">GViz</span>}
           <button
             onClick={() => onToggleSidebar(!isOpen)}
             className="p-2 rounded-lg hover:bg-violet-600/20 focus:outline-none focus:ring-2 focus:ring-violet-500 z-[1050] transition-colors"
@@ -83,7 +83,7 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
         
         <div className="flex-1 overflow-y-auto scrollbar-hide">
           <nav className="flex-1 space-y-1 px-2 py-4" aria-label="Main navigation">
-            <Link to="/" className="flex items-center px-4 py-2 text-sm rounded-lg text-violet-300 hover:bg-gradient-to-r hover:from-violet-600/20 hover:to-purple-600/20">
+            <Link to="/" className="flex items-center px-4 py-2 text-sm rounded-lg text-slate-200 hover:bg-gradient-to-r hover:from-violet-600/20 hover:to-purple-600/20">
               <FaHome />
               {isOpen && <span className="ml-3">Home</span>}
             </Link>
@@ -96,8 +96,8 @@ const Sidebar = ({ isOpen, onToggleSidebar }) => {
                   className={`
                     flex items-center px-4 py-2 text-sm rounded-lg
                     ${isActive 
-                      ? 'bg-gradient-to-r from-violet-600/30 to-purple-600/30 text-[#444]' 
-                      : 'text-[#444] hover:bg-gradient-to-r hover:from-violet-600/20 hover:to-purple-600/20'}
+                      ? 'bg-gradient-to-r from-violet-600/30 to-purple-600/30 text-slate-200' 
+                      : 'text-slate-200 hover:bg-gradient-to-r hover:from-violet-600/20 hover:to-purple-600/20'}
                   `}
                 >
                   {item.icon}
