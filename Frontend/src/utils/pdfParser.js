@@ -1,21 +1,26 @@
-import * as PDFJS from 'pdfjs-dist';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
-
-// Set the worker source to use the bundled worker
-PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+/**
+ * PDF parser utility with proper error handling
+ */
 
 /**
- * Extract text content from a PDF file using mozilla's PDF.js
+ * Extract text content from a PDF file using PDF.js
  * @param {File} file - PDF file object
  * @returns {Promise<string>} - Text content from the PDF
  */
 export const extractTextFromPDF = async (file) => {
   try {
+    // Dynamically import PDF.js to avoid worker configuration issues
+    const pdfjs = await import('pdfjs-dist/build/pdf');
+    const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
+    
+    // Set the worker source
+    pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+    
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
     
     // Load the PDF document
-    const loadingTask = PDFJS.getDocument({ data: arrayBuffer });
+    const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
     const pdf = await loadingTask.promise;
     
     console.log(`PDF loaded. Number of pages: ${pdf.numPages}`);
@@ -35,43 +40,48 @@ export const extractTextFromPDF = async (file) => {
     return textContent.trim();
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
-    throw new Error(`Failed to extract text from PDF: ${error.message}`);
+    // Return empty string instead of throwing to avoid crashing
+    return `Failed to extract text: ${error.message}`;
   }
 };
 
 /**
  * Fallback method using FileReader for simple PDF text extraction
- * Less accurate but doesn't require external libraries
  * @param {File} file - PDF file object
  * @returns {Promise<string>} - Text content from the PDF
  */
 export const simpleExtractTextFromPDF = async (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (event) => {
-      const arrayBuffer = event.target.result;
-      let text = '';
+  return new Promise((resolve) => {
+    try {
+      const reader = new FileReader();
       
-      // Simple text extraction - this is a basic approach and won't work well for all PDFs
-      try {
-        // Convert ArrayBuffer to string
-        const textDecoder = new TextDecoder('utf-8');
-        text = textDecoder.decode(arrayBuffer);
-        
-        // Clean up the text (remove non-printable characters)
-        text = text.replace(/[^\x20-\x7E\n\r\t]/g, ' ');
-        resolve(text);
-      } catch (error) {
-        reject(new Error(`Failed to extract text from PDF: ${error.message}`));
-      }
-    };
-    
-    reader.onerror = () => {
-      reject(new Error('Failed to read PDF file'));
-    };
-    
-    reader.readAsArrayBuffer(file);
+      reader.onload = (event) => {
+        try {
+          const arrayBuffer = event.target.result;
+          
+          // Convert ArrayBuffer to string
+          const textDecoder = new TextDecoder('utf-8');
+          const text = textDecoder.decode(arrayBuffer);
+          
+          // Clean up the text (remove non-printable characters)
+          const cleanedText = text.replace(/[^\x20-\x7E\n\r\t]/g, ' ');
+          resolve(cleanedText);
+        } catch (error) {
+          console.error("Error processing PDF content:", error);
+          resolve(`Failed to process PDF content: ${error.message}`);
+        }
+      };
+      
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+        resolve("Failed to read PDF file");
+      };
+      
+      reader.readAsArrayBuffer(file);
+    } catch (error) {
+      console.error("Error in simpleExtractTextFromPDF:", error);
+      resolve(`Error: ${error.message}`);
+    }
   });
 };
 

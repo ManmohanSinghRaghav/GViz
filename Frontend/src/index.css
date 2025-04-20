@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --primary: #8b5cf6;
@@ -19,7 +17,7 @@ html {
 }
 
 body {
-  @apply bg-slate-100 text-slate-800 font-sans;
+  @apply bg-gray-50 text-gray-900;
   background-image: 
     radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 30%),
     radial-gradient(circle at 80% 80%, rgba(109, 40, 217, 0.1) 0%, transparent 30%);
