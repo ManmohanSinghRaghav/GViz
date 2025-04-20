@@ -117,13 +117,13 @@ export const authService = {
   }
 };
 
-// Chat service for Gemini
+// Chat service for AI Assistant
 export const chatService = {
-  // Send message to Gemini
+  // Send message to AI
   sendMessage: async (message) => {
     try {
-      console.log('Sending message to Gemini:', message);
-      const response = await sendToGemini(message);
+      console.log('Sending message to AI assistant:', message);
+      const response = await sendToAI(message);
       return response;
     } catch (error) {
       console.error('Error in chat service:', error);
@@ -132,11 +132,25 @@ export const chatService = {
   }
 };
 
-// Send message to Gemini
-const sendToGemini = async (message) => {
+// Send message to AI
+const sendToAI = async (message) => {
   try {
-    console.log('Sending to Gemini API:', message);
-    console.log('Gemini API URL:', `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`);
+    console.log('Sending to AI API:', message);
+    console.log('AI API URL:', `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`);
+    
+    const systemPrompt = `
+      You are a helpful, supportive, and knowledgeable mentor for users of the SynqTech learning platform. 
+      Respond with empathy, encouragement, and practical advice. Help users with their learning journey, 
+      career development, and technical questions.
+      
+      Format your responses using these conventions:
+      - Use **bold text** for important points or headings
+      - Use *italic text* for emphasis
+      - Use bullet points with "-" for lists
+      - Keep responses concise and well-structured
+      
+      Your goal is to empower users and help them grow their skills and confidence.
+    `;
     
     const response = await axios.post(
       `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
@@ -146,7 +160,7 @@ const sendToGemini = async (message) => {
             role: "system",
             parts: [
               {
-                text: "You are a helpful, supportive, and knowledgeable mentor for users of the SynqTech learning platform. Respond with empathy, encouragement, and practical advice. Help users with their learning journey, career development, and technical questions. Provide guidance that is personalized, actionable, and concise. When appropriate, suggest resources or next steps. Your goal is to empower users and help them grow their skills and confidence."
+                text: systemPrompt
               }
             ]
           },
@@ -191,9 +205,9 @@ const sendToGemini = async (message) => {
       }
     );
 
-    console.log('Gemini raw response:', response.data);
+    console.log('AI assistant raw response:', response.data);
     
-    // Process Gemini response
+    // Process AI response
     if (response.data && response.data.candidates && response.data.candidates.length > 0) {
       const candidate = response.data.candidates[0];
       if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
@@ -206,16 +220,16 @@ const sendToGemini = async (message) => {
 
     return {
       success: false,
-      response: 'No valid response from Gemini'
+      response: 'No valid response from AI'
     };
   } catch (error) {
-    console.error('Error in Gemini API call:', error);
+    console.error('Error in AI API call:', error);
     if (error.response) {
-      console.error('Gemini error response:', error.response.data);
+      console.error('AI error response:', error.response.data);
     }
     return {
       success: false,
-      response: `Gemini API Error: ${error.message}`
+      response: `AI Assistant Error: ${error.message || 'Unknown error'}. Please try again later.`
     };
   }
 };

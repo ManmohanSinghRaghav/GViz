@@ -25,7 +25,7 @@ const ATSAI = () => {
         throw new Error(validationErrors.join('\n'));
       }
 
-      // Process file
+      // Process file using our updated PDF parser
       const text = await extractTextFromPDF(file);
       if (!text || text.trim().length < 100) {
         throw new Error('Unable to extract sufficient content from the resume. Please check the file.');

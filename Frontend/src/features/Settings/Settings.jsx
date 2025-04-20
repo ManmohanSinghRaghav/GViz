@@ -65,35 +65,35 @@ const Settings = () => {
       </div>
 
       {/* Theme Settings */}
-      <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
+      <div className="glass-morphism-light rounded-xl p-6 bg-white shadow-md">
         <div className="flex items-center gap-3 mb-6">
-          <FaPalette className="text-violet-400 text-xl" />
-          <h2 className="text-xl font-semibold text-white">Appearance</h2>
+          <FaPalette className="text-violet-600 text-xl" />
+          <h2 className="text-xl font-semibold text-slate-800">Appearance</h2>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-slate-200">Dark Mode</span>
+          <span className="text-slate-700">Dark Mode</span>
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-lg bg-slate-800/50 border border-violet-500/20
-              hover:bg-violet-600/20 transition-colors"
+            className="p-2 rounded-lg bg-slate-100 border border-violet-200
+              hover:bg-violet-100 transition-colors"
           >
             {darkMode ? 
-              <FaMoon className="text-violet-400" /> : 
-              <FaSun className="text-violet-400" />
+              <FaMoon className="text-violet-600" /> : 
+              <FaSun className="text-violet-600" />
             }
           </button>
         </div>
       </div>
 
       {/* Security Settings */}
-      <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
+      <div className="glass-morphism-light rounded-xl p-6 bg-white shadow-md">
         <div className="flex items-center gap-3 mb-6">
-          <FaShieldAlt className="text-violet-400 text-xl" />
-          <h2 className="text-xl font-semibold text-white">Security</h2>
+          <FaShieldAlt className="text-violet-600 text-xl" />
+          <h2 className="text-xl font-semibold text-slate-800">Security</h2>
         </div>
         <button
-          className="w-full px-4 py-2 rounded-lg bg-violet-600/20 text-slate-200
-            border border-violet-500/20 hover:bg-violet-600/30 transition-colors"
+          className="w-full px-4 py-2 rounded-lg bg-violet-100 text-slate-800
+            border border-violet-200 hover:bg-violet-200 transition-colors"
         >
           Change Password
         </button>
