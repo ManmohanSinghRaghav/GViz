@@ -1,58 +1,31 @@
-# Python
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
+*/__pycache__/
+*/*/__pycache__/
+
+# Distribution / packaging
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+build/
 *.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
-venv/
-ENV/
-env/
-
-# IDE
+# Local development settings
+.env
 .idea/
 .vscode/
-*.swp
-*.swo
-.DS_Store
-
-# Flask stuff
-instance/
-.webassets-cache
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
 
 # Logs
 *.log
 logs/
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# OS specific files
+.DS_Store
+Thumbs.db

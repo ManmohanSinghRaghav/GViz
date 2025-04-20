@@ -82,7 +82,9 @@ export const authService = {
 
   signup: async (userData) => {
     try {
+      // Using the correct endpoint that matches backend route in user_bp
       const response = await api.post('/user/register', userData);
+      console.log('Signup API response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Signup API error:', error);
@@ -127,7 +129,8 @@ export const chatService = {
         hasImage: !!image 
       });
       
-      const response = await api.post('/api/chat', data);
+      // Fix: Remove duplicated '/api' in the URL
+      const response = await api.post('/chat', data);
       console.log('Chat API response:', response);
       return response.data;
     } catch (error) {

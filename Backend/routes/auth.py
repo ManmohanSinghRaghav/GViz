@@ -1,42 +1,38 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token
-import database
-import logging
-from datetime import datetime
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import check_password_hash
 
-logger = logging.getLogger(__name__)
+# Fix import path
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import db
+
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    try:
-        data = request.get_json()
-        
-        # Basic validation
-        if not data.get('email') or not data.get('password'):
-            return jsonify({"msg": "Email and password are required"}), 400
-        
-        # Verify credentials
-        user = database.verify_user(data.get('email'), data.get('password'))
-        
-        if not user:
-            return jsonify({"msg": "Invalid credentials"}), 401
-        
-        # Create access token
-        access_token = create_access_token(identity=str(user['_id']))
-        
-        # Remove sensitive data
-        if 'password_hash' in user:
-            del user['password_hash']
-        
-        logger.info(f"User logged in: {user['email']}")
-        
-        return jsonify({
-            "msg": "Login successful",
-            "access_token": access_token,
-            "user": user
-        }), 200
-            
-    except Exception as e:
-        logger.error(f"Login error: {e}")
-        return jsonify({"msg": "Login failed"}), 500
+    data = request.get_json()
+    
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({"msg": "Missing email or password"}), 400
+    
+    user = db.get_user_by_email(data['email'])
+    
+    if not user or not check_password_hash(user['password_hash'], data['password']):
+        return jsonify({"msg": "Invalid credentials"}), 401
+    
+    # Create access token
+    access_token = create_access_token(identity=str(user['_id']))
+    
+    return jsonify({
+        "token": access_token,
+        "user": db.user_to_dict(user)
+    }), 200
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    # JWT is stateless, so we don't actually invalidate the token here
+    # Client should remove the token from storage
+    return jsonify({"msg": "Successfully logged out"}), 200

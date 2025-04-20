@@ -1,76 +1,36 @@
-import os
-import sys
-import logging
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
-from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Initialize Flask app
+app = Flask(__name__)
+app.config.from_object('config.Config')
 
-# Ensure package paths are resolved correctly
-root_path = os.path.dirname(os.path.abspath(__file__))
-if root_path not in sys.path:
-    sys.path.insert(0, root_path)
+# Initialize extensions
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+jwt = JWTManager(app)
 
-# Load environment variables
-load_dotenv()
+# Import the db module to ensure connection is established
+import db
 
-def create_app():
-    # Initialize Flask app
-    app = Flask(__name__)
-    
-    # Configure app
-    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev-secret-key')
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.environ.get('JWT_ACCESS_TOKEN_EXPIRES_MINUTES', 60)) * 60  # Convert to seconds
-    
-    # Initialize extensions
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
-    jwt = JWTManager(app)
-    
-    # Import blueprints - this needs to happen after app creation to avoid circular imports
-    try:
-        from routes.auth_routes import auth_bp
-        from routes.user_routes import user_bp
-        
-        # Register basic blueprints
-        app.register_blueprint(auth_bp)
-        app.register_blueprint(user_bp)
-        
-        # Try to register the chatbot blueprint if it exists
-        try:
-            from routes.chatbot_routes import chatbot_bp
-            app.register_blueprint(chatbot_bp)
-            logger.info("Chatbot routes registered")
-        except ImportError as e:
-            logger.warning(f"Chatbot routes not registered: {e}")
-            
-    except ImportError as e:
-        logger.error(f"Error importing routes: {e}")
-        
-        @app.route('/')
-        def error_page():
-            return jsonify({
-                "error": "Application initialization failed",
-                "message": "The routes could not be loaded. Check server logs for details."
-            }), 500
-    
-    # Root API route for health check
-    @app.route('/api')
-    def api_root():
-        return jsonify({
-            "status": "online",
-            "version": "1.0.0"
-        })
-    
-    return app
+# Import routes - must be after app is created
+from routes.auth import auth_bp
+from routes.user import user_bp
+from routes.chat import chat_bp
+from routes.search import search_bp
 
-# Create the app instance
-app = create_app()
+# Register blueprints
+app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(user_bp, url_prefix='/api/user')
+app.register_blueprint(chat_bp, url_prefix='/api/chat')
+app.register_blueprint(search_bp, url_prefix='/api/search')
 
-# Add application entrypoint
+# Health check endpoint
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok", "message": "GViz API is running", "db": "MongoDB Cloud"})
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=True)

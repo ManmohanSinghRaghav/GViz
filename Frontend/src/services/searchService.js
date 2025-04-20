@@ -1,20 +1,17 @@
-import { mockSearchResults } from '../Mock_data/searchMock';
+import api from './api';
 
 export const searchContent = async (query) => {
-  // Simulate API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const results = Object.entries(mockSearchResults).reduce((acc, [key, items]) => {
-        const filtered = items.filter(item => 
-          item.title.toLowerCase().includes(query.toLowerCase())
-        );
-        if (filtered.length > 0) {
-          acc[key] = filtered;
-        }
-        return acc;
-      }, {});
-      
-      resolve(results);
-    }, 500);
-  });
+  try {
+    const response = await api.get('/search', {
+      params: { q: query }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Search service error:', error);
+    throw error;
+  }
+};
+
+export default {
+  searchContent
 };

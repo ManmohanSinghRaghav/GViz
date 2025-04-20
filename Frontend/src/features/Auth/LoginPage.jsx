@@ -5,7 +5,7 @@ import { FaEnvelope, FaLock, FaUser, FaKey, FaShieldAlt } from 'react-icons/fa';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, error: authError, isAuthenticated } = useAuth();
+  const { login, signup, error: authError, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -38,9 +38,52 @@ const LoginPage = () => {
     }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // Handle signup logic here
+    setError('');
+    setIsLoading(true);
+    
+    // Get form data from signup form
+    const formData = {
+      email: e.target.email.value,
+      password: e.target.password.value,
+      confirmPassword: e.target.confirmPassword.value,
+    };
+    
+    // Ensure passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      // Format data for the API - match exactly what backend expects
+      const signupData = {
+        name: formData.email.split('@')[0], // Generate name from email if not provided
+        email: formData.email,
+        password: formData.password,
+        // Optional avatar field that backend supports
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.email.split('@')[0])}`
+      };
+      
+      console.log('Submitting registration with:', {...signupData, password: '******'});
+      
+      // Call signup function from auth context
+      const success = await signup(signupData);
+      
+      if (success) {
+        // Navigate to dashboard or home page after successful registration
+        navigate('/');
+      } else {
+        throw new Error(authError || 'Signup failed. Please try again.');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred during signup');
+      console.error('Signup form error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -63,14 +106,6 @@ const LoginPage = () => {
             Visualize • Analyze • Sync
           </div>
         </div>
-
-        {showDebugInfo && (
-          <div className="bg-gray-800 p-3 rounded text-xs text-gray-300">
-            <p className="font-bold mb-1">Test Accounts:</p>
-            <p>Email: <span className="text-green-400">admin@example.com</span> / Password: <span className="text-green-400">admin123</span></p>
-            <p>Email: <span className="text-green-400">test@example.com</span> / Password: <span className="text-green-400">password123</span></p>
-          </div>
-        )}
 
         {/* Main Card Container - Adjusted padding */}
         <div className="relative z-40">
