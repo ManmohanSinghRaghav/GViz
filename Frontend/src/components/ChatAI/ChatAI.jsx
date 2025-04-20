@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaRobot, FaTimes, FaPaperPlane } from 'react-icons/fa';
-import { OPENAI_API_KEY, OPENAI_API_URL } from '../../config/api.config';
+import { chatService } from '../../services/api';
 
 const ChatAI = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [hasStartedChat, setHasStartedChat] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const quickMessages = [
     "Hi! How are you?",
@@ -15,74 +17,63 @@ const ChatAI = () => {
     "Show me learning resources"
   ];
 
+  // Toggle the chat window
   const toggleChat = () => setIsOpen(!isOpen);
 
-  const generateAIResponse = async (userMessage) => {
+  // Automatically scroll to bottom when new messages are added
+  useEffect(() => {
+    const messageContainer = document.getElementById('message-container');
+    if (messageContainer) {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+  }, [messages]);
+
+  // Generate Gemini response
+  const generateGeminiResponse = async (userMessage) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
-      const requestBody = {
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful AI assistant for SynqTech learning platform."
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 150
-      };
-
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY.trim()}`,
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      console.log('Sending message to Gemini:', userMessage);
+      const response = await chatService.sendMessage(userMessage);
+      
+      if (response && response.success) {
+        return response.response;
+      } else {
+        setError('Failed to get response from Gemini');
+        return 'I\'m sorry, but I encountered an error. Please try again.';
       }
-
-      const data = await response.json();
-      console.log('API Response:', data); // Debug log
-      return data.choices[0].message.content;
     } catch (error) {
-      console.error('API Error:', error);
-      return 'I apologize, but I encountered an error. Please check your API configuration.';
+      console.error('Gemini API Error:', error);
+      setError(error.message || 'Error communicating with Gemini');
+      return `I apologize, but I encountered an error: ${error.message || 'Unknown error'}`;
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
     
-    const userMessage = input;
+    const userMessage = input.trim();
     setInput('');
     setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
     setHasStartedChat(true);
 
-    try {
-      const aiResponse = await generateAIResponse(userMessage);
-      setMessages(prev => [...prev, { text: aiResponse, sender: 'ai' }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        text: 'Sorry, I encountered an error. Please try again.', 
-        sender: 'ai' 
-      }]);
-    }
+    const aiResponse = await generateGeminiResponse(userMessage);
+    setMessages(prev => [...prev, { text: aiResponse, sender: 'ai' }]);
   };
 
+  // Handle quick message selection
   const handleQuickMessage = async (message) => {
+    if (isLoading) return;
+    
     setMessages(prev => [...prev, { text: message, sender: 'user' }]);
     setHasStartedChat(true);
 
-    // Generate and add AI response
-    const aiResponse = await generateAIResponse(message);
+    const aiResponse = await generateGeminiResponse(message);
     setMessages(prev => [...prev, { text: aiResponse, sender: 'ai' }]);
   };
 
@@ -111,7 +102,9 @@ const ChatAI = () => {
             <div className="p-4 border-b border-violet-500/20 flex justify-between items-center bg-gradient-to-r from-violet-600/10 to-purple-600/10">
               <div className="flex items-center space-x-2">
                 <FaRobot className="text-violet-400 text-lg" />
-                <span className="text-slate-200 font-medium">AI Assistant</span>
+                <span className="text-slate-200 font-medium">
+                  Gemini 1.5 Flash
+                </span>
               </div>
               <button 
                 onClick={toggleChat}
@@ -122,7 +115,13 @@ const ChatAI = () => {
             </div>
 
             {/* Messages Container */}
-            <div className="h-80 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-violet-500/20">
+            <div id="message-container" className="h-80 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-violet-500/20">
+              {messages.length === 0 && !hasStartedChat && (
+                <div className="text-center text-slate-400 italic py-8">
+                  Start a conversation with Gemini or choose a quick message below.
+                </div>
+              )}
+              
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -137,6 +136,24 @@ const ChatAI = () => {
                   </div>
                 </div>
               ))}
+              
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] p-3 rounded-lg bg-slate-800/50 text-slate-200">
+                    <div className="flex space-x-2 items-center">
+                      <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {error && (
+                <div className="text-center my-2 p-2 bg-red-900/30 border border-red-500/30 rounded-lg text-red-300 text-sm">
+                  {error}
+                </div>
+              )}
             </div>
 
             {/* Quick Message Buttons - Only show if chat hasn't started */}
@@ -147,11 +164,13 @@ const ChatAI = () => {
                     <button
                       key={idx}
                       onClick={() => handleQuickMessage(msg)}
+                      disabled={isLoading}
                       className="p-2 text-sm rounded-lg text-slate-200
                         bg-gradient-to-r from-violet-600/20 to-purple-600/20
                         hover:from-violet-600/30 hover:to-purple-600/30
                         border border-violet-500/20
-                        transition-all duration-300"
+                        transition-all duration-300
+                        disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {msg}
                     </button>
@@ -167,16 +186,19 @@ const ChatAI = () => {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder="Ask Gemini 1.5 something..."
                   className="flex-1 bg-slate-800/50 text-slate-200 placeholder-violet-400/50 
                     rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-violet-500/40
                     border border-violet-500/20"
+                  disabled={isLoading}
                 />
                 <button
                   type="submit"
+                  disabled={isLoading || !input.trim()}
                   className="p-2 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 
                     text-slate-200 hover:shadow-lg hover:shadow-violet-500/25 
-                    transition-all duration-300"
+                    transition-all duration-300
+                    disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FaPaperPlane className="text-lg" />
                 </button>

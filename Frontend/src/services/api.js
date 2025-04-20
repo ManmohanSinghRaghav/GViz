@@ -1,5 +1,9 @@
 import axios from 'axios';
 import storage from '../utils/storage';
+import { 
+  GEMINI_API_KEY, 
+  GEMINI_API_URL
+} from '../config/api.config';
 
 // Base API URL - use relative URL to work with Vite's proxy
 const API_BASE_URL = '/api';
@@ -113,30 +117,98 @@ export const authService = {
   }
 };
 
-// Chat service functions
+// Chat service for Gemini
 export const chatService = {
-  sendMessage: async (message, image = null) => {
+  // Send message to Gemini
+  sendMessage: async (message) => {
     try {
-      const data = { message };
-      
-      // If image is provided, include it as base64
-      if (image) {
-        data.image = image;
-      }
-      
-      console.log('Sending chat request with data:', { 
-        message, 
-        hasImage: !!image 
-      });
-      
-      // Fix: Remove duplicated '/api' in the URL
-      const response = await api.post('/chat', data);
-      console.log('Chat API response:', response);
-      return response.data;
+      console.log('Sending message to Gemini:', message);
+      const response = await sendToGemini(message);
+      return response;
     } catch (error) {
-      console.error('Chat API error:', error);
+      console.error('Error in chat service:', error);
       throw error;
     }
+  }
+};
+
+// Send message to Gemini
+const sendToGemini = async (message) => {
+  try {
+    console.log('Sending to Gemini API:', message);
+    console.log('Gemini API URL:', `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`);
+    
+    const response = await axios.post(
+      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: message
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 800,
+          topP: 0.8,
+          topK: 40
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log('Gemini raw response:', response.data);
+    
+    // Process Gemini response
+    if (response.data && response.data.candidates && response.data.candidates.length > 0) {
+      const candidate = response.data.candidates[0];
+      if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+        return {
+          success: true,
+          response: candidate.content.parts[0].text
+        };
+      }
+    }
+
+    return {
+      success: false,
+      response: 'No valid response from Gemini'
+    };
+  } catch (error) {
+    console.error('Error in Gemini API call:', error);
+    if (error.response) {
+      console.error('Gemini error response:', error.response.data);
+    }
+    return {
+      success: false,
+      response: `Gemini API Error: ${error.message}`
+    };
   }
 };
 

@@ -1,23 +1,23 @@
 import { useLocation, Navigate } from 'react-router-dom';
 import { Routes, Route } from 'react-router-dom';
 import { useState } from 'react';
-import { AuthProvider } from './contexts/AuthContext';  // Updated path
+import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import Sidebar from './layout/Sidebar';
-import MainNav from './layout/MainNav'; // Import MainNav
+import MainNav from './layout/MainNav';
 import Home from './pages/Home';
 import MyJourney from './components/MyJourney/MyJourney';
 import Dashboard from './features/Dashboard/Dashboard';
 import Settings from './features/Settings/Settings';
-import ChatAI from './components/ChatAI/ChatAI';
+import ChatAI from './components/ChatAI/ChatAI'; // Make sure this is the correct path
 import NotificationsPage from './features/Notifications/NotificationsPage';
-import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Import ProtectedRoute
-import CourseView from './features/CourseView/CourseView'; // Import CourseView
-import MaterialView from './features/MaterialView/MaterialView'; // Import MaterialView
-import TutorialView from './features/TutorialView/TutorialView'; // Import TutorialView
-import ProfilePage from './features/Profile/ProfilePage'; // Import ProfilePage
-import LoginPage from './features/Auth/LoginPage'; // Import LoginPage
-import CompleteProfile from './features/Profile/CompleteProfile'; // Import CompleteProfile
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import CourseView from './features/CourseView/CourseView';
+import MaterialView from './features/MaterialView/MaterialView';
+import TutorialView from './features/TutorialView/TutorialView';
+import ProfilePage from './features/Profile/ProfilePage';
+import LoginPage from './features/Auth/LoginPage';
+import CompleteProfile from './features/Profile/CompleteProfile';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);  // Changed to false
