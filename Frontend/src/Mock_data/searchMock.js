@@ -10,7 +10,7 @@ export const mockSearchResults = {
     { id: 3, title: 'Color Theory Basics', type: 'material', format: 'Article' }
   ],
   tutorials: [
-    { id: 1, title: 'Getting Started with GViz', type: 'tutorial', duration: '15 mins' },
+    { id: 1, title: 'Getting Started with SynqTech', type: 'tutorial', duration: '15 mins' },
     { id: 2, title: 'Creating Your First Chart', type: 'tutorial', duration: '20 mins' },
     { id: 3, title: 'Advanced Data Mapping', type: 'tutorial', duration: '30 mins' }
   ]

@@ -34,7 +34,7 @@ const Navbar = () => {
             <Link to="/" className="flex items-center space-x-3">
               <Logo />
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-800">GViz</span>
+                <span className="text-xl font-bold text-gray-800">SynqTech</span>
                 <span className="text-xs text-gray-500">Data Visualization</span>
               </div>
             </Link>

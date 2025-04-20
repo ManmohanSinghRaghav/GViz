@@ -31,7 +31,7 @@ const MainNav = () => {
     },
     {
       id: 3,
-      title: 'Welcome to GViz',
+      title: 'Welcome to SynqTech',
       message: 'Thanks for joining our platform',
       time: '2h ago',
       unread: false

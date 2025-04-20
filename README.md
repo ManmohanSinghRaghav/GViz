@@ -1,4 +1,4 @@
-# G Viz
+# SynqTech
 
 A visual data visualization application built with React and Tailwind CSS.
 
