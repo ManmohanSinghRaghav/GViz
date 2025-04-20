@@ -78,7 +78,14 @@ const SignupForm = ({ onSubmit, isLoading, validatePassword }) => {
     const validationErrors = validateForm();
 
     if (Object.keys(validationErrors).length === 0) {
-      onSubmit(formData);
+      // Pass the complete form data to the parent component
+      onSubmit({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        acceptTerms: formData.acceptTerms
+      });
     } else {
       setErrors(validationErrors);
     }

@@ -24,12 +24,20 @@ const SignupPage = () => {
         throw new Error('Password does not meet strength requirements');
       }
 
-      // Call the signup function from AuthContext
-      const success = await signup({
+      // Format the data according to the backend's expected format
+      // Match exactly what the backend /user/register endpoint expects
+      const signupData = {
         name: userData.name,
         email: userData.email,
-        password: userData.password
-      });
+        password: userData.password,
+        // Optional fields that backend supports
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}`
+      };
+
+      console.log('Sending signup data to /user/register:', {...signupData, password: '******'});
+      
+      // Call the signup function from AuthContext
+      const success = await signup(signupData);
       
       if (success) {
         setVerificationSent(true);

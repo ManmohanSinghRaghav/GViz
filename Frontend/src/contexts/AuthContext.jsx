@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { mockAdmin } from '../Mock_data/authMock';
 import storage from '../utils/storage';
+import { authService } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -72,28 +73,37 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     
     try {
-      const newUser = {
-        ...userData,
-        id: Date.now(),
-        role: 'user',
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}`,
-        token: 'mock-jwt-token',
-        bio: userData.bio || '',
-        location: userData.location || '',
-        company: userData.company || '',
-        website: userData.website || '',
-        skills: userData.skills || [],
-        education: userData.education || [],
-        experience: userData.experience || []
-      };
+      // Call the actual API service
+      const response = await authService.signup(userData);
       
-      storage.set('token', newUser.token);
-      storage.set('user', newUser);
-      setIsAuthenticated(true);
-      setUser(newUser);
-      return true;
+      // The backend registration response format doesn't include a token
+      // We need to do a login after successful registration to get a token
+      if (response && response.user) {
+        // If registration is successful, perform login
+        const loginResponse = await authService.login(userData.email, userData.password);
+        
+        // Now extract token from login response
+        const token = loginResponse.token || loginResponse.access_token;
+        
+        if (!token) {
+          throw new Error('No authentication token received from server');
+        }
+        
+        // Store token and user data
+        storage.set('token', token);
+        storage.set('user', loginResponse.user || response.user);
+        
+        setIsAuthenticated(true);
+        setUser(loginResponse.user || response.user);
+        return true;
+      } else {
+        throw new Error(response.msg || 'Failed to create account');
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Signup error:', err);
+      // Extract error message from API response or use generic message
+      const errorMsg = err.msg || err.message || 'Failed to create account. Please try again.';
+      setError(errorMsg);
       return false;
     } finally {
       setIsLoading(false);
