@@ -18,6 +18,7 @@ import TutorialView from './features/TutorialView/TutorialView';
 import ProfilePage from './features/Profile/ProfilePage';
 import LoginPage from './features/Auth/LoginPage';
 import CompleteProfile from './features/Profile/CompleteProfile';
+import ATSAI from './pages/ATS/ATSAI'; // Import ATSAI
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);  // Changed to false
@@ -66,6 +67,7 @@ function App() {
                             </ProtectedRoute>
                           } 
                         />
+                        <Route path="/ats-ai" element={<ATSAI />} />
                         <Route path="*" element={<Navigate to="/" />} />
                       </Routes>
                     </div>
