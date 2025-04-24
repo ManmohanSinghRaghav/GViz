@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FaUser, FaBell, FaShieldAlt, FaPalette, FaMoon, FaSun } from 'react-icons/fa';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Settings = () => {
-  const [darkMode, setDarkMode] = useState(true);
+  const { darkMode, toggleDarkMode } = useTheme();
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
+      <h1 className="text-3xl font-bold dark:text-white text-gray-800 mb-8">Settings</h1>
 
       {/* Profile Settings */}
       <div className="glass-morphism rounded-xl p-6 bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95">
@@ -65,21 +66,22 @@ const Settings = () => {
       </div>
 
       {/* Theme Settings */}
-      <div className="glass-morphism-light rounded-xl p-6 bg-white shadow-md">
+      <div className="glass-morphism-light dark:glass-morphism rounded-xl p-6">
         <div className="flex items-center gap-3 mb-6">
-          <FaPalette className="text-violet-600 text-xl" />
-          <h2 className="text-xl font-semibold text-slate-800">Appearance</h2>
+          <FaPalette className="text-violet-600 dark:text-violet-400 text-xl" />
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">Appearance</h2>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-slate-700">Dark Mode</span>
+          <span className="text-slate-700 dark:text-slate-200">Dark Mode</span>
           <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-lg bg-slate-100 border border-violet-200
-              hover:bg-violet-100 transition-colors"
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 
+              border border-violet-200 dark:border-violet-500/20
+              hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors"
           >
             {darkMode ? 
-              <FaMoon className="text-violet-600" /> : 
-              <FaSun className="text-violet-600" />
+              <FaSun className="text-violet-600 dark:text-violet-400" /> : 
+              <FaMoon className="text-violet-600 dark:text-violet-400" />
             }
           </button>
         </div>

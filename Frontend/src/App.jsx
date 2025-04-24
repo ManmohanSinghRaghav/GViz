@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Sidebar from './layout/Sidebar';
 import MainNav from './layout/MainNav';
 import Home from './pages/Home';
@@ -19,6 +21,7 @@ import ProfilePage from './features/Profile/ProfilePage';
 import LoginPage from './features/Auth/LoginPage';
 import CompleteProfile from './features/Profile/CompleteProfile';
 import ATSAI from './pages/ATS/ATSAI'; 
+import NotificationPopup from './components/Notification/NotificationPopup';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -45,66 +48,71 @@ function App() {
   }
 
   return (
-    <SettingsProvider>
-      <AuthProvider>
-        <div className="min-h-screen bg-slate-950 relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 left-0 w-full h-full 
-              bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.1),transparent_50%)]">
-            </div>
-            <div className="absolute bottom-0 right-0 w-full h-full 
-              bg-[radial-gradient(ellipse_at_bottom_left,rgba(124,58,237,0.05),transparent_50%)]">
-            </div>
-          </div>
+    <ThemeProvider>
+      <SettingsProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+              {/* Background decoration */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-0 w-full h-full 
+                  bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.1),transparent_50%)]">
+                </div>
+                <div className="absolute bottom-0 right-0 w-full h-full 
+                  bg-[radial-gradient(ellipse_at_bottom_left,rgba(124,58,237,0.05),transparent_50%)]">
+                </div>
+              </div>
 
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <div className="flex min-h-screen animate-fadeIn">
-                    <Sidebar 
-                      isOpen={isSidebarOpen} 
-                      onToggleSidebar={setIsSidebarOpen} 
-                    />
-                    <main className={`
-                      flex-1 relative 
-                      transition-all duration-300 
-                      ${isSidebarOpen ? 'ml-64' : 'ml-16'}
-                      pt-16
-                    `}>
-                      <MainNav />
-                      <div className="container mx-auto px-4 py-6 max-w-7xl mt-10 animate-slideInUp">
-                        <Routes>
-                          <Route path="/" element={<Home />} />
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/journey" element={<MyJourney />} />
-                          <Route path="/settings" element={<Settings />} />
-                          <Route path="/notifications" element={<NotificationsPage />} />
-                          <Route 
-                            path="/complete-profile" 
-                            element={
-                              <ProtectedRoute>
-                                <CompleteProfile />
-                              </ProtectedRoute>
-                            } 
-                          />
-                          <Route path="/ats-ai" element={<ATSAI />} />
-                          <Route path="*" element={<Navigate to="/" />} />
-                        </Routes>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/*"
+                  element={
+                    <ProtectedRoute>
+                      <div className="flex min-h-screen animate-fadeIn">
+                        <Sidebar 
+                          isOpen={isSidebarOpen} 
+                          onToggleSidebar={setIsSidebarOpen} 
+                        />
+                        <main className={`
+                          flex-1 relative 
+                          transition-all duration-300 
+                          ${isSidebarOpen ? 'ml-64' : 'ml-16'}
+                          pt-16
+                        `}>
+                          <MainNav />
+                          <div className="container mx-auto px-4 py-6 max-w-7xl mt-10 animate-slideInUp">
+                            <Routes>
+                              <Route path="/" element={<Home />} />
+                              <Route path="/dashboard" element={<Dashboard />} />
+                              <Route path="/journey" element={<MyJourney />} />
+                              <Route path="/settings" element={<Settings />} />
+                              <Route path="/notifications" element={<NotificationsPage />} />
+                              <Route 
+                                path="/complete-profile" 
+                                element={
+                                  <ProtectedRoute>
+                                    <CompleteProfile />
+                                  </ProtectedRoute>
+                                } 
+                              />
+                              <Route path="/ats-ai" element={<ATSAI />} />
+                              <Route path="*" element={<Navigate to="/" />} />
+                            </Routes>
+                          </div>
+                        </main>
                       </div>
-                    </main>
-                  </div>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-          {showChat && <ChatAI />}
-        </div>
-      </AuthProvider>
-    </SettingsProvider>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+              {showChat && <ChatAI />}
+              <NotificationPopup />
+            </div>
+          </NotificationProvider>
+        </AuthProvider>
+      </SettingsProvider>
+    </ThemeProvider>
   );
 }
 
